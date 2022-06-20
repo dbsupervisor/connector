@@ -1,4 +1,4 @@
-import {BackendType} from './backends'
+import {BackendType} from './backends/domain'
 import {Snapshot} from './snapshots'
 
 export enum MessageType {

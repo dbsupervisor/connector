@@ -1,5 +1,6 @@
-import {Backend} from './backends'
+import {Backend} from './backends/domain'
 import {Snapshot} from './snapshots'
+import {Statement} from './statements'
 import {Table} from './tables'
 
 export interface ServerConfig {
@@ -38,7 +39,19 @@ export const makeServer = ({
       Promise.resolve<Table[]>([]),
     )
 
-    return {databases, tables}
+    const statements = await databasesToMonitor.reduce(
+      (promise, databaseName) =>
+        promise.then(async (output) => {
+          const databaseStatements = await backend.getStatements({databaseName})
+
+          output.push(...databaseStatements)
+
+          return output
+        }),
+      Promise.resolve<Statement[]>([]),
+    )
+
+    return {databases, tables, statements}
   }
 
   return {

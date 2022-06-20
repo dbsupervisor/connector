@@ -1,5 +1,5 @@
 import WebSocket from 'ws'
-import {BackendType} from './backends'
+import {BackendType} from './backends/domain'
 import {IncomingMessage, MessageType, OutgoingMessage} from './messages'
 import {Server} from './server'
 

@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import util from 'util'
-import {BackendType} from '.'
+import {BackendType} from './domain'
 
 const readFileAsync = util.promisify(fs.readFile)
 
@@ -11,6 +11,10 @@ export const readQueryFile = async (
 ) =>
   (
     await readFileAsync(
-      path.join(__dirname, `./${backendType.toLowerCase()}/queries`, fileName),
+      path.join(
+        __dirname,
+        `../../queries/${backendType.toLowerCase()}`,
+        fileName,
+      ),
     )
   ).toString()

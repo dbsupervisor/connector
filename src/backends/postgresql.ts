@@ -1,8 +1,9 @@
 import {Client} from 'pg'
-import {BackendConstructor, BackendType} from '..'
-import {Database} from '../../databases'
-import {Table} from '../../tables'
-import {readQueryFile} from '../utils'
+import {BackendConstructor, BackendType} from './domain'
+import {Database} from '../databases'
+import {Table} from '../tables'
+import {readQueryFile} from './utils'
+import {Statement} from '../statements'
 
 export interface PostgresConfig {
   host: string
@@ -19,6 +20,10 @@ const construct: BackendConstructor<PostgresConfig> = async (config) => {
   const GET_TABLES_SQL = await readQueryFile(
     BackendType.PostgreSQL,
     'get-tables.sql',
+  )
+  const GET_STATEMENTS_SQL = await readQueryFile(
+    BackendType.PostgreSQL,
+    'get-statements.sql',
   )
 
   const {host, port, username, password} = config
@@ -100,9 +105,34 @@ const construct: BackendConstructor<PostgresConfig> = async (config) => {
     }))
   }
 
+  const getStatements = async ({
+    databaseName,
+  }: {
+    databaseName: string
+  }): Promise<Statement[]> => {
+    const {rows} = await useConnection(databaseName, (client) =>
+      client.query<{
+        dbid: number
+        queryid: string
+        query: string
+        calls: string
+        total_exec_time: string
+      }>(GET_STATEMENTS_SQL, [databaseName]),
+    )
+
+    return rows.map((row) => ({
+      externalId: row.queryid,
+      databaseExternalId: row.dbid.toString(10),
+      query: row.query,
+      calls: BigInt(row.calls),
+      totalExecutionTime: parseInt(row.total_exec_time, 10),
+    }))
+  }
+
   return {
     getDatabases,
     getTables,
+    getStatements,
   }
 }
 

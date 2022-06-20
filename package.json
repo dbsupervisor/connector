@@ -14,10 +14,10 @@
   "bin": {
     "dbsupervisor-connector": "./dist/bin/index.js"
   },
-  "main": "./dist/src/index.js",
+  "main": "./dist/bin/index.js",
   "scripts": {
-    "start": "node --require ts-node/register ./src/index.ts",
-    "start:dev": "ts-node-dev --respawn --log-error --exit-child ./src/index.ts",
+    "start": "node --require ts-node/register ./bin/index.ts",
+    "start:dev": "ts-node-dev --respawn --log-error --exit-child ./bin/index.ts",
     "build": "tsc"
   },
   "dependencies": {
@@ -33,7 +33,6 @@
     "ws": "^8.6.0"
   },
   "devDependencies": {
-    "@types/commander": "^2.12.2",
     "@types/node": "^17.0.38",
     "@typescript-eslint/eslint-plugin": "^5.22.0",
     "@typescript-eslint/parser": "^5.22.0",
