@@ -1,7 +1,7 @@
 import WebSocket from 'ws'
 import {BackendType} from './backends/domain'
 import {IncomingMessage, MessageType, OutgoingMessage} from './messages'
-import {Server} from './server'
+import {Server} from './server/domain'
 
 export const makeWebSocketServer = ({
   url,

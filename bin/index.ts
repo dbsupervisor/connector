@@ -6,6 +6,7 @@ import {run} from '../src'
 import pkg from '../package.json'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+import {handleError} from '../src/errors'
 ;(BigInt.prototype as any).toJSON = function () {
   return this.toString()
 }
@@ -24,15 +25,19 @@ program
   )
   .parse(process.argv)
 ;(async () => {
-  const opts = program.opts()
+  try {
+    const opts = program.opts()
 
-  const uri = opts.uri || process.env.URI
-  const apiKey = opts.apiKey || process.env.API_KEY
-  const backend = opts.backend || process.env.BACKEND
+    const uri = opts.uri || process.env.URI
+    const apiKey = opts.apiKey || process.env.API_KEY
+    const backend = opts.backend || process.env.BACKEND
 
-  await run({
-    uri,
-    apiKey,
-    backend,
-  })
+    await run({
+      uri,
+      apiKey,
+      backend,
+    })
+  } catch (error) {
+    handleError(error)
+  }
 })()

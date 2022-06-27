@@ -1,8 +1,9 @@
 import './logger'
 import {parse as pgParse} from 'pg-connection-string'
-import {makeServer} from './server'
+import {makeServer} from './server/server'
 import postgresBackend from './backends/postgresql'
 import {makeWebSocketServer} from './web-socket'
+import {ServerConfig} from './server/domain'
 
 export const run = async ({
   uri,
@@ -23,15 +24,20 @@ export const run = async ({
     port: parseInt(pgDetails.port!, 10),
   })
 
+  const serverConfig: ServerConfig = {
+    primaryDatabaseName: pgDetails.database!,
+    additionalDatabaseNames: ['dbsupervisor_test'],
+  }
+
+  await pgBackend.initialize({serverConfig})
+
   const server = makeServer({
-    config: {
-      primaryDatabaseName: pgDetails.database!,
-      additionalDatabaseNames: ['dbsupervisor_test'],
-    },
+    config: serverConfig,
     backend: pgBackend,
   })
 
   console.log('Connector initialized')
+
   // eslint-disable-next-line no-constant-condition
   while (true) {
     try {

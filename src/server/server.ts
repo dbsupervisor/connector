@@ -1,16 +1,8 @@
-import {Backend} from './backends/domain'
-import {Snapshot} from './snapshots'
-import {Statement} from './statements'
-import {Table} from './tables'
-
-export interface ServerConfig {
-  primaryDatabaseName: string
-  additionalDatabaseNames: string[]
-}
-
-export interface Server {
-  getSnapshot: () => Promise<Snapshot>
-}
+import {Backend} from '../backends/domain'
+import {Snapshot} from '../snapshots'
+import {Statement} from '../statements'
+import {Table} from '../tables'
+import {Server, ServerConfig} from './domain'
 
 export const makeServer = ({
   backend,

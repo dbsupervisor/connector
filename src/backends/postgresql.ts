@@ -4,7 +4,23 @@ import {Database} from '../databases'
 import {Table} from '../tables'
 import {readQueryFile} from './utils'
 import {Statement} from '../statements'
+import {ServerConfig} from '../server/domain'
+import {MissingExtensionError} from '../errors'
 
+const REQUIRED_EXTENSIONS = ['pg_stat_statements']
+const GET_DATABASES_SQL = readQueryFile(
+  BackendType.PostgreSQL,
+  'get-databases.sql',
+)
+const GET_TABLES_SQL = readQueryFile(BackendType.PostgreSQL, 'get-tables.sql')
+const GET_STATEMENTS_SQL = readQueryFile(
+  BackendType.PostgreSQL,
+  'get-statements.sql',
+)
+const CHECK_EXTENSIONS_SQL = readQueryFile(
+  BackendType.PostgreSQL,
+  'check-extensions.sql',
+)
 export interface PostgresConfig {
   host: string
   username: string
@@ -13,19 +29,6 @@ export interface PostgresConfig {
 }
 
 const construct: BackendConstructor<PostgresConfig> = async (config) => {
-  const GET_DATABASES_SQL = await readQueryFile(
-    BackendType.PostgreSQL,
-    'get-databases.sql',
-  )
-  const GET_TABLES_SQL = await readQueryFile(
-    BackendType.PostgreSQL,
-    'get-tables.sql',
-  )
-  const GET_STATEMENTS_SQL = await readQueryFile(
-    BackendType.PostgreSQL,
-    'get-statements.sql',
-  )
-
   const {host, port, username, password} = config
 
   const useConnection = async <TResult>(
@@ -47,6 +50,27 @@ const construct: BackendConstructor<PostgresConfig> = async (config) => {
     await client.end()
 
     return result
+  }
+
+  const initialize = async ({serverConfig}: {serverConfig: ServerConfig}) => {
+    const databases = [
+      serverConfig.primaryDatabaseName,
+      ...serverConfig.additionalDatabaseNames,
+    ]
+
+    for (const database of databases) {
+      const {rows} = await useConnection(database, (client) =>
+        client.query<{
+          name: string
+        }>(CHECK_EXTENSIONS_SQL, [REQUIRED_EXTENSIONS]),
+      )
+
+      for (const extension of REQUIRED_EXTENSIONS) {
+        if (!rows.find(({name}) => name === extension)) {
+          throw new MissingExtensionError(database, extension)
+        }
+      }
+    }
   }
 
   const getDatabases = async ({
@@ -129,11 +153,7 @@ const construct: BackendConstructor<PostgresConfig> = async (config) => {
     }))
   }
 
-  return {
-    getDatabases,
-    getTables,
-    getStatements,
-  }
+  return {initialize, getDatabases, getTables, getStatements}
 }
 
 export default construct
